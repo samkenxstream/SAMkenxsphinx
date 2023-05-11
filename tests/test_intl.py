@@ -596,7 +596,7 @@ def test_gettext_literalblock(app):
     actual = read_po(app.outdir / 'literalblock.pot')
     for expect_msg in [m for m in expect if m.id]:
         if len(expect_msg.id.splitlines()) == 1:
-            # compare tranlsations only labels
+            # compare translations only labels
             assert expect_msg.id in [m.id for m in actual if m.id]
         else:
             pass  # skip code-blocks and literalblocks
@@ -727,13 +727,6 @@ def test_html_index_entries(app):
         wrap('a', 'THIRD, FIRST'),
         wrap_nest('li', 'ul', 'ENTRY'),
         wrap_nest('li', 'ul', 'SEE'),
-        wrap('a', 'MODULE'),
-        wrap('a', 'KEYWORD'),
-        wrap('a', 'OPERATOR'),
-        wrap('a', 'OBJECT'),
-        wrap('a', 'EXCEPTION'),
-        wrap('a', 'STATEMENT'),
-        wrap('a', 'BUILTIN'),
     ]
     for expr in expected_exprs:
         assert_re_search(expr, result, re.M)

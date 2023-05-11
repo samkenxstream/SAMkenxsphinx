@@ -119,7 +119,7 @@
    \pysig@restore@itemsep@and@parskip
 }
 %
-% Use a \parbox to accomodate long argument list in signatures
+% Use a \parbox to accommodate long argument list in signatures
 % LaTeX did not imagine that an \item label could need multi-line rendering
 \newlength{\py@argswidth}
 \newcommand{\py@sigparams}[2]{%
@@ -144,6 +144,27 @@
 \let\label\spx@label
   \py@argswidth=\dimexpr\linewidth+\labelwidth-\py@argswidth\relax\relax
   \item[{#1\sphinxcode{(}\py@sigparams{#2}{#3}\strut}]
+  \pysigadjustitemsep
+}
+
+\def\sphinxoptionalextraspace{0.5mm}
+\newcommand{\pysigwithonelineperarg}[3]{%
+  % render each argument on its own line
+  \item[#1\sphinxcode{(}\strut]
+  \leavevmode\par\nopagebreak
+  % this relies on \pysigstartsignatures having set \parskip to zero
+  \begingroup
+     \let\sphinxparamcomma\sphinxparamcommaoneperline
+     \def\sphinxoptionalhook{\ifvmode\else\kern\sphinxoptionalextraspace\relax\fi}%
+     % The very first \sphinxparam should not emit a \par hence a complication
+     % with a group and global definition here as it may occur in a \sphinxoptional
+     \global\let\spx@sphinxparam\sphinxparam
+     \gdef\sphinxparam{\gdef\sphinxparam{\par\spx@sphinxparam}\spx@sphinxparam}%
+  #2\par
+  \endgroup
+  \global\let\sphinxparam\spx@sphinxparam
+  % fulllineitems sets \labelwidth to be like \leftmargin
+  \nopagebreak\noindent\kern-\labelwidth\sphinxcode{)}{#3}
   \pysigadjustitemsep
 }
 \newcommand{\pysigadjustitemsep}{%

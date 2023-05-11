@@ -307,7 +307,7 @@ General configuration
    "filter".  The default is ``None``, which doesn't reassign the default role.
 
    The default role can always be set within individual documents using the
-   standard reST :rst:dir:`default-role` directive.
+   standard reST :dudir:`default-role` directive.
 
    .. versionadded:: 0.4
 
@@ -337,6 +337,7 @@ General configuration
    * ``epub.unknown_project_files``
    * ``epub.duplicated_toc_entry``
    * ``i18n.inconsistent_references``
+   * ``index``
    * ``image.not_readable``
    * ``ref.term``
    * ``ref.ref``
@@ -387,6 +388,10 @@ General configuration
    .. versionadded:: 4.5
 
       Added ``i18n.inconsistent_references``
+
+    .. versionadded:: 7.1
+
+        Added ``index`` warning type.
 
 .. confval:: needs_sphinx
 
@@ -440,12 +445,14 @@ General configuration
 
 .. confval:: nitpick_ignore
 
-   A list of ``(type, target)`` tuples (by default empty) that should be
+   A set or list of ``(type, target)`` tuples (by default empty) that should be
    ignored when generating warnings in "nitpicky mode".  Note that ``type``
    should include the domain name if present.  Example entries would be
    ``('py:func', 'int')`` or ``('envvar', 'LD_LIBRARY_PATH')``.
 
    .. versionadded:: 1.1
+   .. versionchanged:: 6.2
+      Changed allowable container types to a set, list, or tuple
 
 .. confval:: nitpick_ignore_regex
 
@@ -460,6 +467,8 @@ General configuration
    ``('py:class', 'food.bar.Barman')``.
 
    .. versionadded:: 4.1
+   .. versionchanged:: 6.2
+      Changed allowable container types to a set, list, or tuple
 
 .. confval:: numfig
 
@@ -665,6 +674,25 @@ General configuration
    .. versionchanged:: 0.3
       If the value is a fully-qualified name of a custom Pygments style class,
       this is then used as custom style.
+
+.. confval:: maximum_signature_line_length
+
+   If a signature's length in characters exceeds the number set, each
+   parameter within the signature will be displayed on an individual logical
+   line.
+
+   When ``None`` (the default), there is no maximum length and the entire
+   signature will be displayed on a single logical line.
+
+   A 'logical line' is similar to a hard line break---builders or themes may
+   choose to 'soft wrap' a single logical line, and this setting does not affect
+   that behaviour.
+
+   Domains may provide options to suppress any hard wrapping on an individual
+   object directive, such as seen in the C, C++, and Python domains (e.g.
+   :rst:dir:`py:function:single-line-parameter-list`).
+
+   .. versionadded:: 7.1
 
 .. confval:: add_function_parentheses
 
@@ -1132,7 +1160,7 @@ that use Sphinx's HTMLWriter class.
 
    As a special attribute, *priority* can be set as an integer to load the CSS
    file earlier or lazier step.  For more information, refer
-   :meth:`Sphinx.add_css_files()`.
+   :meth:`.Sphinx.add_css_file()`.
 
    .. versionadded:: 1.8
    .. versionchanged:: 3.5
@@ -1155,7 +1183,7 @@ that use Sphinx's HTMLWriter class.
 
    As a special attribute, *priority* can be set as an integer to load the CSS
    file earlier or lazier step.  For more information, refer
-   :meth:`Sphinx.add_css_files()`.
+   :meth:`.Sphinx.add_css_file()`.
 
    .. versionadded:: 1.8
    .. versionchanged:: 3.5
@@ -1217,7 +1245,7 @@ that use Sphinx's HTMLWriter class.
 .. confval:: html_last_updated_fmt
 
    If this is not None, a 'Last updated on:' timestamp is inserted
-   at every page bottom, using the given :func:`strftime` format.
+   at every page bottom, using the given :func:`~time.strftime` format.
    The empty string is equivalent to ``'%b %d, %Y'`` (or a
    locale-dependent equivalent).
 
@@ -1480,8 +1508,8 @@ that use Sphinx's HTMLWriter class.
 
    :type:
       _`type` is dotted module path string to specify Splitter implementation
-      which should be derived from :class:`sphinx.search.ja.BaseSplitter`.  If
-      not specified or None is specified,
+      which should be derived from :class:`!sphinx.search.ja.BaseSplitter`.  If
+      not specified or ``None`` is specified,
       ``'sphinx.search.ja.DefaultSplitter'`` will be used.
 
       You can choose from these modules:
@@ -1732,7 +1760,7 @@ HTML builder, so the HTML options also apply where appropriate.
    Italian    it
    =========  ====
 
-   Defaults to :confval:`language`, or if that is not set, to :confval:`en`.
+   Defaults to :confval:`language`, or if that is not set, to ``'en'``.
 
 .. confval:: applehelp_locale
 
@@ -1740,7 +1768,7 @@ HTML builder, so the HTML options also apply where appropriate.
    the name of the ``.lproj`` folder inside the Help Book’s ``Resources``, and
    is passed to the help indexer.
 
-   Defaults to :confval:`language`, or if that is not set, to :confval:`en`.
+   Defaults to :confval:`language`, or if that is not set, to ``'en'``.
 
 .. confval:: applehelp_title
 
@@ -2903,6 +2931,14 @@ Options for the C domain
 
   .. versionadded:: 4.0.3
 
+.. confval:: c_maximum_signature_line_length
+
+   If a signature's length in characters exceeds the number set, each
+   parameter will be displayed on an individual logical line. This is a
+   domain-specific setting, overriding :confval:`maximum_signature_line_length`.
+
+   .. versionadded:: 7.1
+
 .. _cpp-config:
 
 Options for the C++ domain
@@ -2933,8 +2969,46 @@ Options for the C++ domain
 
    .. versionadded:: 1.5
 
+.. confval:: cpp_maximum_signature_line_length
+
+   If a signature's length in characters exceeds the number set, each
+   parameter will be displayed on an individual logical line. This is a
+   domain-specific setting, overriding :confval:`maximum_signature_line_length`.
+
+   .. versionadded:: 7.1
+
 Options for the Python domain
 -----------------------------
+
+.. confval:: python_display_short_literal_types
+
+   This value controls how :py:data:`~typing.Literal` types are displayed.
+   The setting is a boolean, default ``False``.
+
+   Examples
+   ~~~~~~~~
+
+   The examples below use the following :rst:dir:`py:function` directive:
+
+   .. code:: reStructuredText
+
+      .. py:function:: serve_food(item: Literal["egg", "spam", "lobster thermidor"]) -> None
+
+   When ``False``, :py:data:`~typing.Literal` types display as per standard
+   Python syntax, i.e.:
+
+      .. code:: python
+
+         serve_food(item: Literal["egg", "spam", "lobster thermidor"]) -> None
+
+   When ``True``, :py:data:`~typing.Literal` types display with a short,
+   :PEP:`604`-inspired syntax, i.e.:
+
+      .. code:: python
+
+         serve_food(item: "egg" | "spam" | "lobster thermidor") -> None
+
+   .. versionadded:: 6.2
 
 .. confval:: python_use_unqualified_type_names
 
@@ -2944,6 +3018,25 @@ Options for the Python domain
    .. versionadded:: 4.0
 
    .. note:: This configuration is still in experimental
+
+.. confval:: python_maximum_signature_line_length
+
+   If a signature's length in characters exceeds the number set, each
+   argument will be displayed on an individual logical line. This is a
+   domain-specific setting, overriding :confval:`maximum_signature_line_length`.
+
+   .. versionadded:: 7.1
+
+Options for the Javascript domain
+---------------------------------
+
+.. confval:: javascript_maximum_signature_line_length
+
+   If a signature's length in characters exceeds the number set, each
+   parameter will be displayed on an individual logical line. This is a
+   domain-specific setting, overriding :confval:`maximum_signature_line_length`.
+
+   .. versionadded:: 7.1
 
 Example of configuration file
 -----------------------------

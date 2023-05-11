@@ -48,13 +48,13 @@ def test_core_config(app, status, warning):
 
     # invalid values
     with pytest.raises(AttributeError):
-        cfg._value
+        _ = cfg._value
     with pytest.raises(AttributeError):
-        cfg.nonexisting_value
+        _ = cfg.nonexisting_value
 
     # non-value attributes are deleted from the namespace
     with pytest.raises(AttributeError):
-        cfg.sys
+        _ = cfg.sys
 
     # setting attributes
     cfg.project = 'Foo'
@@ -328,12 +328,12 @@ def test_nitpick_base(app, status, warning):
 
 
 @pytest.mark.sphinx(testroot='nitpicky-warnings', confoverrides={
-    'nitpick_ignore': [
+    'nitpick_ignore': {
         ('py:const', 'prefix.anything.postfix'),
         ('py:class', 'prefix.anything'),
         ('py:class', 'anything.postfix'),
         ('js:class', 'prefix.anything.postfix'),
-    ],
+    },
 })
 def test_nitpick_ignore(app, status, warning):
     app.builder.build_all()
@@ -427,3 +427,18 @@ def test_conf_py_no_language(tempdir):
 
     # Then the language is coerced to English
     assert cfg.language == "en"
+
+
+def test_conf_py_nitpick_ignore_list(tempdir):
+    """Regression test for #11355."""
+
+    # Given a conf.py file with no language attribute
+    (tempdir / 'conf.py').write_text("", encoding='utf-8')
+
+    # When we load conf.py into a Config object
+    cfg = Config.read(tempdir, {}, None)
+    cfg.init_values()
+
+    # Then the default nitpick_ignore[_regex] is an empty list
+    assert cfg.nitpick_ignore == []
+    assert cfg.nitpick_ignore_regex == []
